@@ -3,7 +3,7 @@
 // ./main.out file1.txt 100
 
 int main(int argc, char *argv[]) {
-    if (argc != 4) {
+    if (argc != 3) {
         fprintf(stderr, "3 arguments: vector, base, num of components\n");
         return 1;
     }
