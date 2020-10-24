@@ -4,53 +4,51 @@
 // У потоков смещение указателя с помощью fscanf n раз, до промежутка (!)
 // ./main.out file_vect.txt file_base.txt 100
 
-double *find_min_norm(FILE *vect_file, FILE *base_file, int vect_size, int base_size) {
+int find_min_norm(FILE *vect_file, FILE *base_file, int vect_size, int base_size) {
     if (!vect_file || !base_file) {
-        return NULL;
+        return -1;
     }
 
     double *buffer = (double*)calloc(vect_size, sizeof(double));
     if (!buffer) {
-        return NULL;
+        return -1;
     }
     int err = 0;
     err = read_vector(&buffer, vect_size, vect_file);
     if (!err) {
         free(buffer);
-        return NULL;
+        return -1;
     }
 
     double in_norm = vector_norm(buffer, vect_size);  // ошибка?
-    printf("in norm - %lf\n", in_norm);
 
     err = read_vector(&buffer, vect_size, base_file);
     if (!err) {
         free(buffer);
-        return NULL;
+        return -1;
     }
     double norm_current_base = 0;
     double current_diff_norm = 0;
     double temp_diff = 0;
+
     norm_current_base = vector_norm(buffer, vect_size);
-    printf("norm_curr - %lf\n", norm_current_base);
     current_diff_norm = abs(in_norm - norm_current_base);
-    int k = 0;
+    int stroke = 0;
     for (int i = 1; i < base_size; ++i) {
         err = read_vector(&buffer, vect_size, base_file);
         if (!err) {
             free(buffer);
-            return NULL;
+            return -1;
         }
         norm_current_base = vector_norm(buffer, vect_size);
-        printf("norm_curr - %lf\n", norm_current_base);
         temp_diff = abs(in_norm - norm_current_base);
         if (temp_diff < current_diff_norm) {
             current_diff_norm = temp_diff;
-            k = i;
+            stroke = i;
         }
     }
-    printf("%d\n", k);
-    return NULL; // Затычкa
+    free(buffer);
+    return stroke; // Затычкa
 }
 
 int main(int argc, char *argv[]) {
@@ -84,5 +82,12 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    find_min_norm(file_vect, file_base, vector_size, base_size);
+    int k = find_min_norm(file_vect, file_base, vector_size, base_size);
+    printf("k = %d\n", k);
+    fseek(file_base, 0, SEEK_SET);
+    double *a = get_vect(k, vector_size, file_base);
+    for (int i = 0; i < vector_size; ++i) {
+        printf("%lf ", a[i]);
+    }
+
 }

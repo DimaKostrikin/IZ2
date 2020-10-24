@@ -36,3 +36,35 @@ int read_vector(double **buffer, unsigned int vector_size, FILE *stream) {  // Ð
     return 1;
 }
 
+int offset_file_ptr(int count, FILE *file) {
+    double temp = 0;
+    int err = 0;
+    for (int i = 0; i < count; ++i) {
+        err = fscanf(file, "%lf", &temp);
+        if (err < 1) {
+            return -1;
+        }
+    }
+    return 1;
+}
+
+double *get_vect(int stroke,  int vector_size, FILE *base_file) {
+    int err = 0;
+    err = offset_file_ptr(stroke * vector_size, base_file);
+    if (err < 0) {
+        return NULL;
+    }
+
+    double *vect = (double*)calloc(vector_size, sizeof(double));
+    for (int i = 0; i < vector_size; ++i) {
+        err = fscanf(base_file, "%lf", &vect[i]);
+        if (err < 1) {
+            free(vect);
+            return NULL;
+        }
+    }
+    return vect;
+}
+
+
+
