@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>  // Инклюды в h
 #include "IZ2/utils.h"
+#include <math.h>
 
 double vector_norm(const double *vector, unsigned int vector_size) {
     if (!vector) {
@@ -13,7 +14,7 @@ double vector_norm(const double *vector, unsigned int vector_size) {
         norm += vector[i] * vector[i];
     }
 
-    return norm;
+    return sqrt(norm);
 }
 
 int read_vector(double **buffer, unsigned int vector_size, FILE *stream) {  // по одному указателю мб

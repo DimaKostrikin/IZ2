@@ -1,6 +1,14 @@
 #include "IZ2/utils.h"
 #include "IZ2/num_of_cores.h"
 #include <sys/wait.h>
+#include <sys/mman.h>
+#include <fcntl.h>
+#include <sys/stat.h>
+#include <unistd.h>
+#include <sys/types.h>
+
+#include <string.h>
+#include <math.h>
 
 // У потоков смещение указателя с помощью fscanf n раз, до промежутка (!)
 // ./main.out file_vect.txt file_base.txt 100
@@ -80,39 +88,64 @@ void wait_process(int num_of_cores) {
                 printf("Stopped by signal %d\n", WSTOPSIG(status));
             }
         }
+        sleep(1);
     } while (ended_count_process != num_of_cores);
 }
 
 void first_pass(int num_of_cores, int vector_size, int base_size, FILE* write) { // В структуру файлов
     int pid = 0;
+
     for (int i = 0; i < num_of_cores; ++i) {
         pid = fork();
         if (pid == 0) {
             if (!write) {
                 fprintf(stderr, "Fopen err\n");
+                return;
             }
-
             FILE *base = fopen("txt/file_base.txt", "r+");
-            if (!base) {
-                fprintf(stderr, "Fopen err\n");
-            }
+
+
+
             FILE *vect = fopen("txt/file_vect.txt", "r");
 
+            if (!vect) {
+                fprintf(stderr, "Fopen err\n");
+                fclose(base);
+                return;
+            }
+
             int interval = base_size/num_of_cores;
-           // printf("interval %d\n", interval);
-            int offset = i * vector_size * interval;
-            //printf("offset %d\n", offset);
-            offset_file_ptr(offset, base);
+
+            int offset = i * interval;
+
+            //offset_file_ptr(offset, base);
+            int o;
+            char c;
+            while (o != offset) {
+                c = fgetc(base);
+                if (c == '\n')
+                    ++o;
+            }
             int offset_stroke = i * interval;
             int k = find_min_norm(vect, base, vector_size, interval, offset_stroke);
-            //printf("stroke is %d\n", k);
+
             fseek(base, 0, SEEK_SET);
             double *find_vect = get_vect(k, vector_size, base);
+
+            if (!find_vect) {
+                fprintf(stderr, "allocation error");
+                fclose(base);
+                fclose(vect);
+            }
 
             for (int j = 0; j < vector_size; ++j) {
                 fprintf(write,"%lf ", find_vect[j]);
             }
             fprintf(write, "\n");
+
+            fclose(base);
+            fclose(vect);
+            free(find_vect);
 
             exit(0);
         }
@@ -120,6 +153,10 @@ void first_pass(int num_of_cores, int vector_size, int base_size, FILE* write) {
 }
 
 void print_vector(FILE *whence, double *vect, int vector_size) {
+    if (!whence || !vect) {
+        fprintf(stderr, "Null ptr");
+        return;
+    }
     for (int i = 0; i < vector_size; ++i) {
         fprintf(whence,"%lf ", vect[i]);
     }
@@ -136,10 +173,8 @@ void fill_base(FILE *base_file, int base_size, int vect_size) {
     }
 }
 
-
-
 int main(int argc, char *argv[]) {
-    if (argc != 6) {
+    /*if (argc != 6) {
         fprintf(stderr, "5 arguments: 1) vector, 2) base, 3) num of components, 4) base size, 5) mode\n");
         return 1;
     }
@@ -172,6 +207,7 @@ int main(int argc, char *argv[]) {
 
     int k = 0;
     int num_of_cores = get_num_cores();
+    num_of_cores = 4;
     FILE *write = fopen("txt/file_write.txt", "r+");
 
     switch (mode){
@@ -184,14 +220,55 @@ int main(int argc, char *argv[]) {
             break;
         case 1:
             first_pass(num_of_cores, vector_size, base_size, write);
-            //wait_process(num_of_cores);
+            wait_process(num_of_cores);
             fseek(write, 0, SEEK_SET);
 
             k = find_min_norm(file_vect, write, vector_size, num_of_cores, 0);
-            //printf("k = %d\n", k);
+
             fseek(write, 0, SEEK_SET);
             double *b_res = get_vect(k, vector_size, write);
             print_vector(stdout, b_res, vector_size);
             break;
     }
+    */
+    FILE *test = fopen("txt/file_base.txt", "r");
+
+    struct stat st;
+    stat("txt/file_base.txt", &st);
+    size_t file_size = st.st_size;
+
+    int fd = fileno(test);
+    char *region = mmap(NULL,
+                          file_size,
+                          PROT_READ | PROT_WRITE,
+                          MAP_PRIVATE | MAP_POPULATE,
+                          fd,
+                          0);
+    if (region == MAP_FAILED) {
+        printf("Map failed\n");
+        fclose(test);
+        return 1;
+    }
+    double a;
+
+    int width_of_num = 9;
+    int size_of_string = 36;
+
+    int num_of_stroke = 0;
+    int num_of_elem = 0;
+
+    double norm = 0;
+    double sum = 0;
+
+    while (num_of_elem < 4) {
+        sscanf(region + size_of_string * num_of_stroke + num_of_elem * width_of_num, "%lf", &a);
+        sum += (a*a);
+        ++num_of_elem;
+    }
+    norm = sqrt(sum);
+    printf("vector on stroke %d norm is %lf", num_of_stroke, norm);
+
+
+    //sscanf(region + size_of_string * num_of_stroke + num_of_elem * width_of_num, "%lf", &a);
+    //printf("%0*.*lf", 8, 6, a);
 }

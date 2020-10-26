@@ -1,13 +1,14 @@
 cmake_minimum_required(VERSION 3.3)
 
-set(${TARGET_NAME} IZ2.out)
+set(TARGET_NAME IZ2.out)
 
 project(IZ2.out)
 
-set(CMAKE_C_STANDARD 99)
+set(CMAKE_C_STANDARD 11)
 
 include_directories("${PROJECT_SOURCE_DIR}/include")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}")
+
 
 file(GLOB sources
     "${PROJECT_SOURCE_DIR}/include/IZ2/*.h"
@@ -15,3 +16,5 @@ file(GLOB sources
     "${PROJECT_SOURCE_DIR}/test/*.test")
 
 add_executable(IZ2.out ${sources})
+
+target_link_libraries(IZ2.out PUBLIC m)
