@@ -1,5 +1,5 @@
 // ifdef def endif
-#include "IZ2/num_of_cores.h"
+#include "vectlib/num_of_cores.h"
 
 #ifdef _WIN32
 #include <windows.h>

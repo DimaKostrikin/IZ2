@@ -1,7 +1,10 @@
-#include "IZ2/utils.h"
-
+#include "vectlib/utils.h"
+#include <time.h>
 
 int main(int argc, char *argv[]) {
+    clock_t start = 0;
+    clock_t stop = 0;
+    start = clock();
     if (argc != 6) {
         fprintf(stderr, "5 arguments: 1) vector, 2) base, 3) vect size, 4) base size, 5) mode\n");
         return 1;
@@ -40,7 +43,7 @@ int main(int argc, char *argv[]) {
             sequential_execution(&sizes, file_base, file_vect);
             break;
         case 1:
-            parallel_execution(&sizes, file_base, file_vect);
+            parallel_execution_threads(&sizes, file_base, file_vect);
             break;
         case 2:
             fill_base(file_base, sizes.base_size, sizes.vect_size);
@@ -49,5 +52,8 @@ int main(int argc, char *argv[]) {
     fclose(file_base);
     fclose(file_vect);
 
-    //printf("%0*.*lf", 8, 6, a);
+    stop = clock();
+    printf("Затраченное время: %ld\n", (stop - start) / CLOCKS_PER_SEC);
+
+   // printf("%0*.*lf", 8, 6, a);
 }

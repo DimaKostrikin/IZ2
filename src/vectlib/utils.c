@@ -2,9 +2,10 @@
 #include <stdio.h>  // ifdef
 #include <math.h>
 #include <unistd.h>
+#include <pthread.h>
 
-#include "IZ2/utils.h"
-#include "IZ2/num_of_cores.h"
+#include "vectlib/utils.h"
+#include "vectlib//num_of_cores.h"
 
 double vector_norm(const double *vector, unsigned int vector_size) {
     if (!vector) {
@@ -155,23 +156,18 @@ void blocking_process(char *path_to_blocking) {
 
 void first_pass(int num_of_cores, sizes_of_base *sizes, double in_norm, FILE* write) {
     int pid = 0;
+    if (!write) {
+        fprintf(stderr, "Fopen err\n");
+        return;
+    }
 
     for (int i = 0; i < num_of_cores; ++i) {
         pid = fork();
         if (pid == 0) {
-            if (!write) {
-                fprintf(stderr, "Fopen err\n");
-                return;
-            }
             FILE *base = fopen("txt/file_base.txt", "r+");
 
-            FILE *vect = fopen("txt/file_vect.txt", "r");
+            //FILE *vect = fopen("txt/file_vect.txt", "r");
 
-            if (!vect) {
-                fprintf(stderr, "Fopen err\n");
-                fclose(base);
-                return;
-            }
 
             int interval = sizes->base_size/num_of_cores;
 
@@ -194,7 +190,6 @@ void first_pass(int num_of_cores, sizes_of_base *sizes, double in_norm, FILE* wr
             if (!find_vect) {
                 fprintf(stderr, "allocation error");
                 fclose(base);
-                fclose(vect);
             }
 
             char *path_to_blocking_file = "txt/blocking";  // Безопасный ввод данных в один файл
@@ -205,7 +200,6 @@ void first_pass(int num_of_cores, sizes_of_base *sizes, double in_norm, FILE* wr
             remove(path_to_blocking_file);
 
             fclose(base);
-            fclose(vect);
             free(find_vect);
 
             exit(0);
@@ -303,4 +297,88 @@ void parallel_execution(sizes_of_base *sizes, FILE *file_base, FILE *file_vect) 
     print_vector(stdout, res_vect, &sizes_write);
     free(res_vect);
     remove(path_to_write_file);
+}
+
+void parallel_execution_threads(sizes_of_base *sizes, FILE *file_base, FILE *file_vect) {
+    int num_of_processors = get_num_cores();
+    FILE *massive_files[num_of_processors];
+
+    for (int i = 0; i < num_of_processors; ++i) {  // Получение файловых дескрипторов для каждого потока
+        massive_files[i] = fopen("txt/file_base.txt", "r");
+        if (!massive_files[i]) {
+            for (int j = i - 1; j >=0; --j) {
+                fclose(massive_files[j]);
+            }
+            return;
+        }
+    }
+
+    FILE *write_file = fopen("txt/file_write.txt", "a+");
+
+    double in_norm = find_norm_from_file(sizes, file_vect); // find norm from file
+
+    thread_args t_args[num_of_processors];  // Инициализация аргументов для каждого потока
+    for (int i = 0; i < num_of_processors; ++i) {
+        t_args[i].working_file = massive_files[i];
+        t_args[i].number = i;
+        t_args[i].sizes = sizes;
+        t_args[i].write_file = write_file;
+        t_args[i].in_norm = in_norm;
+        t_args[i].num_of_cores = num_of_processors;
+    }
+
+    pthread_t thread_ids[num_of_processors];
+    for (int i = 0; i < num_of_processors; ++i) {
+        int errflag = pthread_create(&thread_ids[i], NULL, thread_routine, &t_args[i]);
+        if (errflag != 0) {
+            return;
+        }
+    }
+
+    for (int i = 0; i < num_of_processors; ++i) {
+        pthread_join(thread_ids[i], NULL);
+    }
+
+    sizes_of_base sizes_of_write;
+    sizes_of_write.base_size = num_of_processors;
+    sizes_of_write.vect_size = sizes->vect_size;
+    sizes_of_write.width_elemenet = sizes->width_elemenet;
+
+    fseek(write_file, 0, SEEK_SET);
+    int k_min = find_min_norm(write_file, &sizes_of_write, 0, in_norm);
+    fseek(write_file, 0, SEEK_SET);
+    double *res_vect = get_vect(k_min, &sizes_of_write, write_file);
+    print_vector(stdout, res_vect, sizes);
+    remove("txt/file_write.txt");
+}
+
+void *thread_routine(void *arg) {
+    thread_args *t_arg = (thread_args*)arg;
+
+    int interval = t_arg->sizes->base_size/t_arg->num_of_cores;
+
+    off_t offset = t_arg->number * interval * t_arg->sizes->width_elemenet * t_arg->sizes->vect_size;
+
+    fseeko(t_arg->working_file, offset, SEEK_SET);
+
+    sizes_of_base sizes_for_thread;
+    sizes_for_thread.base_size = interval;
+    sizes_for_thread.vect_size = t_arg->sizes->vect_size;
+    sizes_for_thread.width_elemenet = t_arg->sizes->width_elemenet;
+
+    int offset_stroke = t_arg->number * interval;
+
+    int stroke_min = find_min_norm(t_arg->working_file, &sizes_for_thread, offset_stroke, t_arg->in_norm);
+
+    fseeko(t_arg->working_file, 0, SEEK_SET);
+    double *find_vect = get_vect(stroke_min, t_arg->sizes, t_arg->working_file);
+
+    if (!find_vect) {
+        fprintf(stderr, "allocation error");
+        return NULL;
+    }
+
+    //mutex
+    print_vector(t_arg->write_file, find_vect, &sizes_for_thread);
+    return arg;
 }
