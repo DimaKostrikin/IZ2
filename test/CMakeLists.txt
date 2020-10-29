@@ -15,6 +15,6 @@ foreach(file ${tests})
     ${file}
     "${PROJECT_SOURCE_DIR}/test/main.cpp")
   target_link_libraries("${name}_tests" gtest_main)
-  target_link_libraries("${name}_tests" vect_parallel_static)
+  target_link_libraries("${name}_tests" vect_sequence_static)
   add_test(NAME ${name} COMMAND "${name}_tests" WORKING_DIRECTORY "${CMAKE_CURRENT_LIST_DIR}/Resources")
 endforeach()
