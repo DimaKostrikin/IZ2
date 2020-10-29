@@ -15,3 +15,9 @@ cmake-build-debug/
 *.cbp
 *.so
 *.a
+DartConfiguration.tcl
+googletest-build/
+googletest-download/
+googletest-src/
+utils_tests
+

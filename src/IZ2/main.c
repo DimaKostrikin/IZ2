@@ -1,6 +1,9 @@
 #include "vectlib/utils.h"
 #include <time.h>
 
+// cmake -DLIB_STATIC=1 -DSEQUENCE=1 CMakeLists.txt
+// STATIC - статическая либа, SEQUENCE - последовательный метод
+
 int main(int argc, char *argv[]) {
     clock_t start = 0;
     clock_t stop = 0;

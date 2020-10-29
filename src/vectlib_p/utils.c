@@ -162,9 +162,10 @@ void execution(sizes_of_base *sizes, FILE *file_base, FILE *file_vect) {
         }
     }
 
-    FILE *write_file = fopen("txt/file_write.txt", "a+");
+    char *path_to_temp_file = "txt/file_write.txt";
+    FILE *write_file = fopen(path_to_temp_file, "a+");
 
-    double in_norm = find_norm_from_file(sizes, file_vect); // find norm from file
+    double in_norm = find_norm_from_file(sizes, file_vect);
 
     thread_args t_args[num_of_processors];  // Инициализация аргументов для каждого потока
     for (int i = 0; i < num_of_processors; ++i) {

@@ -6,10 +6,12 @@ set(TARGET_NAME IZ2.out)
 project(IZ2.out)
 
 set(CMAKE_C_STANDARD 11)
+set(CMAKE_CXX_STANDARD 14)
 
 include_directories("${PROJECT_SOURCE_DIR}/include")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}")
 
+include(CTest)
 
 file(GLOB program_sources
     "${PROJECT_SOURCE_DIR}/include/IZ2/*.h"
@@ -25,6 +27,23 @@ file(GLOB lib_sources_s
         "${PROJECT_SOURCE_DIR}/include/vectlib/*.h"
         "${PROJECT_SOURCE_DIR}/src/vectlib_s/*.c"
         "${PROJECT_SOURCE_DIR}/test/*.test")
+
+####gtest
+
+configure_file(CMakeLists.txt.in
+        googletest-download/CMakeLists.txt)
+execute_process(COMMAND ${CMAKE_COMMAND} -G "${CMAKE_GENERATOR}" .
+        WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/googletest-download )
+execute_process(COMMAND ${CMAKE_COMMAND} --build .
+        WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/googletest-download )
+
+add_subdirectory(${CMAKE_BINARY_DIR}/googletest-src
+        ${CMAKE_BINARY_DIR}/googletest-build)
+
+enable_testing()
+add_subdirectory(test)
+
+#######
 
 add_executable(IZ2.out ${program_sources})
 
