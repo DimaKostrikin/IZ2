@@ -28,7 +28,7 @@ int read_vector(double **buffer, sizes_of_base *sizes, FILE *stream) {  // по 
     double *temp = *buffer;
 
     for (int i = 0; i < sizes->vect_size; ++i) {
-        int fscanf_return_val = fscanf(stream, "%lf", &temp[i]);  // name
+        int fscanf_return_val = fscanf(stream, "%9lf", &temp[i]);  // name
 
         if (!fscanf_return_val || fscanf_return_val == EOF) { // Условие проверить
             return -1;
@@ -46,7 +46,7 @@ double *get_vect(int stroke, sizes_of_base *sizes, FILE *base_file) {
 
     double *vect = (double*)calloc(sizes->vect_size, sizeof(double));
     for (int i = 0; i < sizes->vect_size; ++i) {
-        err = fscanf(base_file, "%lf", &vect[i]);
+        err = fscanf(base_file, "%9lf", &vect[i]);
         if (err < 1) {
             free(vect);
             return NULL;
