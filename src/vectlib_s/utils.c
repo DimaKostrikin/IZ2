@@ -125,6 +125,16 @@ void fill_base(FILE *base_file, int base_size, int vect_size) {
     }
 }
 
+void fill_vect(FILE *vect_file, int vect_size) {
+    for (int j = 0; j < vect_size - 1; ++j) {
+        double n = 9.99 * (double)rand() / RAND_MAX;
+        fprintf(vect_file, "%lf ", n);
+    }
+    double n = 9.99 * (double)rand() / RAND_MAX;
+    fprintf(vect_file, "%lf", n);
+    fprintf(vect_file, "\n");
+}
+
 double find_norm_from_file(sizes_of_base *sizes, FILE *file_vect) {
     if (!sizes || !file_vect) {
         fprintf(stderr, "Nullptr\n");
@@ -143,6 +153,7 @@ double find_norm_from_file(sizes_of_base *sizes, FILE *file_vect) {
 }
 
 void execution(sizes_of_base *sizes, FILE *file_base, FILE *file_vect) {
+    printf("sequence method\n");
     if (!sizes || !file_base) {
         fprintf(stderr, "Nullptr\n");
         return;

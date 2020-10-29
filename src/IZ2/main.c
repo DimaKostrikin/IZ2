@@ -11,7 +11,7 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    FILE *file_vect = fopen(argv[1], "r");
+    FILE *file_vect = fopen(argv[1], "r+");
 
     if (!file_vect) {
         fprintf(stderr, "File of vect not found. Error.\n");
@@ -45,6 +45,7 @@ int main(int argc, char *argv[]) {
             break;
         case 1:
             fill_base(file_base, sizes.base_size, sizes.vect_size);
+            fill_vect(file_vect, sizes.vect_size);
     }
 
     fclose(file_base);

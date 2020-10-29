@@ -29,5 +29,6 @@ int find_min_norm(FILE *base_file, sizes_of_base *sizes, int offset_stroke, doub
 void print_vector(FILE *where, double *vect, sizes_of_base *sizes);
 void fill_base(FILE *base_file, int base_size, int vect_size);
 
+void fill_vect(FILE *vect_file, int vect_size);
 void execution(sizes_of_base *sizes, FILE *file_base, FILE *file_vect);
 void *thread_routine(void *arg);
