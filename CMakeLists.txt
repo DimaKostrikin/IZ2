@@ -16,17 +16,38 @@ file(GLOB program_sources
     "${PROJECT_SOURCE_DIR}/src/IZ2/*.c"
     "${PROJECT_SOURCE_DIR}/test/*.test")
 
-file(GLOB lib_sources
+file(GLOB lib_sources_p
         "${PROJECT_SOURCE_DIR}/include/vectlib/*.h"
-        "${PROJECT_SOURCE_DIR}/src/vectlib/*.c"
+        "${PROJECT_SOURCE_DIR}/src/vectlib_p/*.c"
         "${PROJECT_SOURCE_DIR}/test/*.test")
 
-
-add_library(vect STATIC ${lib_sources})
+file(GLOB lib_sources_s
+        "${PROJECT_SOURCE_DIR}/include/vectlib/*.h"
+        "${PROJECT_SOURCE_DIR}/src/vectlib_s/*.c"
+        "${PROJECT_SOURCE_DIR}/test/*.test")
 
 add_executable(IZ2.out ${program_sources})
 
-target_link_libraries(${TARGET_NAME} PUBLIC vect)
+if (LIB_STATIC AND PARALLEL)
+    add_library(vect_parallel_static STATIC ${lib_sources_p})
+    target_link_libraries(${TARGET_NAME} PUBLIC vect_parallel_static)
+endif()
+
+if (LIB_SHARED AND PARALLEL)
+    add_library(vect_parallel_shared SHARED ${lib_sources_p})
+    target_link_libraries(${TARGET_NAME} PUBLIC vect_parallel_shared)
+endif()
+
+if (LIB_STATIC AND SEQUENCE)
+    add_library(vect_sequence_static STATIC ${lib_sources_s})
+    target_link_libraries(${TARGET_NAME} PUBLIC vect_sequence_static)
+endif()
+
+if (LIB_SHARED AND SEQUENCE)
+    add_library(vect_sequence_shared SHARED ${lib_sources_s})
+    target_link_libraries(${TARGET_NAME} PUBLIC vect_sequence_shared)
+endif()
+
 target_link_libraries(${TARGET_NAME} PUBLIC m)
 target_link_libraries(${TARGET_NAME} PUBLIC pthread)
 

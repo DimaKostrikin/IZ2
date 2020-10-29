@@ -5,6 +5,7 @@ int main(int argc, char *argv[]) {
     clock_t start = 0;
     clock_t stop = 0;
     start = clock();
+
     if (argc != 6) {
         fprintf(stderr, "5 arguments: 1) vector, 2) base, 3) vect size, 4) base size, 5) mode\n");
         return 1;
@@ -40,12 +41,9 @@ int main(int argc, char *argv[]) {
 
     switch (mode){
         case 0:
-            sequential_execution(&sizes, file_base, file_vect);
+            execution(&sizes, file_base, file_vect);
             break;
         case 1:
-            parallel_execution_threads(&sizes, file_base, file_vect);
-            break;
-        case 2:
             fill_base(file_base, sizes.base_size, sizes.vect_size);
     }
 

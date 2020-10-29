@@ -13,4 +13,5 @@ _deps
 cmake-build-debug/
 *.out
 *.cbp
-txt/
+*.so
+*.a
