@@ -4,4 +4,3 @@ brew install gcov
 brew install lcov
 
 brew install cppcheck
-brew install --HEAD valgrind

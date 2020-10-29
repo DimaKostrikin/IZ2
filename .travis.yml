@@ -40,9 +40,10 @@ script:
     # скрипт сборки и тестирования проекта:
     - cmake -DLIB_STATIC=1 -DSEQUENCE=1 CMakeLists.txt -D-DTARGET_CPU=$TARGET_CPU
     - cmake --build .
+    - ./IZ2.out txt/file_vect.txt txt/file_base.txt 100 1000000 1 # заполнение файлов
     - ctest --output-on-failure
     - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then valgrind --error-exitcode=1 --leak-check=full --show-leak-kinds=all ctest; fi
-    - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then cppcheck --error-exitcode=1 --enable=warning,performance,information,style  /test/*.cpp /src/vect_lib/*.c /include/*.h; fi
+    - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then cppcheck --error-exitcode=1 --enable=warning,performance,information,style  test/*.cpp src/*/*.c include/*.h; fi
 
 deploy:
     # выкладываем tagged-коммиты на GitHub Releases:

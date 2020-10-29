@@ -38,9 +38,8 @@ int read_vector(double **buffer, sizes_of_base *sizes, FILE *stream) {  // по 
 }
 
 double *get_vect(int stroke, sizes_of_base *sizes, FILE *base_file) {
-    int err = 0;
     off_t offset = stroke * sizes->width_elemenet * sizes->vect_size;
-    fseeko(base_file, offset, SEEK_SET);
+    int err = fseeko(base_file, offset, SEEK_SET);
     if (err < 0) {
         return NULL;
     }
@@ -74,7 +73,6 @@ int find_min_norm(FILE *base_file, sizes_of_base *sizes, int offset_stroke, doub
 
     double norm_current_base = 0;
     double current_diff_norm = 0;
-    double temp_diff = 0;
 
     norm_current_base = vector_norm(buffer, sizes->vect_size);
     current_diff_norm = fabs(in_norm - norm_current_base);
@@ -87,7 +85,7 @@ int find_min_norm(FILE *base_file, sizes_of_base *sizes, int offset_stroke, doub
             return -1;
         }
         norm_current_base = vector_norm(buffer, sizes->vect_size);
-        temp_diff = fabs(in_norm - norm_current_base);
+        double temp_diff = fabs(in_norm - norm_current_base);
         if (temp_diff < current_diff_norm) {
             current_diff_norm = temp_diff;
             stroke = (i + offset_stroke);
